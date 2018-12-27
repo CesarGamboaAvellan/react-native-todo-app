@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
-import { Text, StyleSheet, View, TextInput } from 'react-native';
+import { Text,
+     StyleSheet,
+      View,
+      TextInput,
+      TouchableOpacity,
+     } from 'react-native';
 
 class EventList extends Component {
     constructor(props) {
@@ -7,6 +12,7 @@ class EventList extends Component {
         this.state = { 
             tasks: ['take out the trash', 'gray groceries', 'homework'],
             task: '',
+            completedTasks: ['study', 'play games'],
         };
       }
       changeText = (e) => {
@@ -20,10 +26,33 @@ class EventList extends Component {
               task: '',
           })
       }
+      completeTask = (taskId) => {
+          let tasks = this.state.tasks;
+          let completedTasks = this.state.completedTasks.concat(this.state.tasks[taskId]);
+          tasks =  tasks.slice(0, taskId).concat(tasks.slice(taskId+1));
+          this.setState({
+              tasks,
+              completedTasks,
+          })
+      }
     renderList = (tasks) => {
         return tasks.map((task, key)=> <View style = {styles.task}  key={key}>
             <Text>{task}</Text>
+            <TouchableOpacity  
+            onPress={() => this.completeTask (key)}>
+            <Text style = {styles.checkMark}>&#10003;</Text>
+            </TouchableOpacity>
             </View>)
+    }
+    renderCompletedTasks = (completedTasks) => {
+        return completedTasks.map((completedTask, index) =>
+            <View style = {styles.completedTask} key={index}>
+            <Text>{completedTask}  -Completed</Text>
+            <TouchableOpacity  >
+            <Text style = {styles.deleteMark}>X</Text>
+            </TouchableOpacity>
+            </View>
+        );
     }
     render() {
         return (
@@ -39,6 +68,7 @@ class EventList extends Component {
                 onEndEditing = {() => this.addTask()}
                 />
                 {this.renderList(this.state.tasks)}
+                {this.renderCompletedTasks(this.state.completedTasks)}
             </View>
         )
     }
@@ -55,10 +85,22 @@ const styles = StyleSheet.create({
     },
     task: {
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         height: 60,
+        flexDirection: 'row',
         borderBottomWidth: 1,
         borderColor: 'black',
+        padding: 20,
+    },
+    completedTask: {
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 60,
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderColor: 'black',
+        padding: 20,
+        backgroundColor: 'gray',
     },
     input: {
         height: 60,
@@ -68,5 +110,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         margin: 10,
     },
+    checkMark : {
+        color: 'green',
+        fontSize: 16,
+    },
+    deleteMark: {
+        color: 'red',
+        fontSize: 16, 
+    }
 });
 export default EventList;
