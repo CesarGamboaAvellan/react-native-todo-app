@@ -4,6 +4,8 @@ import { Text,
       View,
       TextInput,
       TouchableOpacity,
+      AsyncStorage, 
+      ScrollView
      } from 'react-native';
 
 class EventList extends Component {
@@ -15,6 +17,24 @@ class EventList extends Component {
             completedTasks: ['study', 'play games'],
         };
       }
+      componentWillMount = () => {
+          AsyncStorage.getItem('tasks')
+          .then((response) => {
+            if(response){
+                this.setState({
+                    tasks: JSON.parse(response),
+                })
+            }
+          });
+          AsyncStorage.getItem('completedTasks')
+          .then((response) => {
+            if(response){
+                this.setState({
+                    completedTasks: JSON.parse(response),
+                })
+            }
+          });
+      }
       changeText = (e) => {
           this.setState({
               task: e,
@@ -24,7 +44,8 @@ class EventList extends Component {
           this.setState({
               tasks: this.state.tasks.concat(this.state.task),
               task: '',
-          })
+          });
+          this.setStorage();
       }
       completeTask = (taskId) => {
           let tasks = this.state.tasks;
@@ -33,7 +54,8 @@ class EventList extends Component {
           this.setState({
               tasks,
               completedTasks,
-          })
+          });
+          this.setStorage();
       }
     renderList = (tasks) => {
         return tasks.map((task, key)=> <View style = {styles.task}  key={key}>
@@ -44,19 +66,34 @@ class EventList extends Component {
             </TouchableOpacity>
             </View>)
     }
+    deleteCompleted = (taskId) => {
+        console.log(taskId);
+        let completedTasks = this.state.completedTasks;
+        completedTasks =  completedTasks.slice(0, taskId).concat(completedTasks.slice(taskId+1));
+        this.setState({
+            completedTasks,
+        })
+        this.setStorage();
+    }
     renderCompletedTasks = (completedTasks) => {
         return completedTasks.map((completedTask, index) =>
             <View style = {styles.completedTask} key={index}>
-            <Text>{completedTask}  -Completed</Text>
-            <TouchableOpacity  >
+            <Text style = {styles.deleted}>{completedTask}  -Completed</Text>
+            <TouchableOpacity  
+                onPress = {() => this.deleteCompleted(index)}
+            >
             <Text style = {styles.deleteMark}>X</Text>
             </TouchableOpacity>
             </View>
         );
     }
+    setStorage = () => {
+        AsyncStorage.setItem('tasks', JSON.stringify(this.state.tasks)); 
+        AsyncStorage.setItem('completedTasks', JSON.stringify(this.state.completedTasks));
+    }
     render() {
         return (
-            <View style={styles.container}>
+            <ScrollView style={styles.container}>
                 <Text style = {styles.header}>
                     Trabajo Pendiente
                 </Text>
@@ -69,7 +106,7 @@ class EventList extends Component {
                 />
                 {this.renderList(this.state.tasks)}
                 {this.renderCompletedTasks(this.state.completedTasks)}
-            </View>
+            </ScrollView>
         )
     }
 }
@@ -117,6 +154,9 @@ const styles = StyleSheet.create({
     deleteMark: {
         color: 'red',
         fontSize: 16, 
-    }
+    },
+    deleted: {
+        textDecorationLine: 'line-through',
+    },
 });
 export default EventList;
